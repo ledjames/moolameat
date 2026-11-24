@@ -1,0 +1,38 @@
+# Moola Meat tracking app. Custom distribution for yhnbqk-zz only.
+# Not an App Store listing. client_id is filled by `shopify app config link`.
+client_id = ""
+
+[access_scopes]
+# Read paid orders and attach tracking to existing fulfillments.
+# No product, price, inventory, or theme scopes.
+# https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders"
+
+[webhooks]
+api_version = "2026-10"
+
+  # Handled by: /app/routes/webhooks.app.uninstalled.tsx
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  # Handled by: /app/routes/webhooks.app.scopes_update.tsx
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  # Mandatory compliance topic for public apps only
+  # See: https://shopify.dev/docs/apps/build/privacy-law-compliance
+  # [[webhooks.subscriptions]]
+  # uri = "/webhooks/customers/data_request"
+  # compliance_topics = ["customers/data_request"]
+
+  # [[webhooks.subscriptions]]
+  # uri = "/webhooks/customers/redact"
+  # compliance_topics = ["customers/redact"]
+
+  # [[webhooks.subscriptions]]
+  # uri = "/webhooks/shop/redact"
+  # compliance_topics = ["shop/redact"]
+
+# No product, price, or inventory event subscriptions in this tracking pass.
