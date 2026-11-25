@@ -4,6 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { loadSfConfig, toPublicConnection } from "../sf/config";
 import { SF_BLOCKERS } from "../sf/blockers";
+import { OUTBOUND_STATUS_PUSH_PATH } from "../sf/constants";
 import { MOOLA_STORE } from "../shopify/store";
 import { runStatusQuery } from "../tracking/query-action";
 
@@ -121,9 +122,12 @@ export default function TrackingHome() {
           </s-banner>
         ) : null}
         <s-paragraph>
-          Live SF calls: {view.liveCallsEnabled ? "enabled" : "off"}. Shopify tracking writes:{" "}
-          {view.trackingWritesEnabled ? "enabled" : "off"}. 3.15 receiver:{" "}
-          {view.pushReceiverPublished ? "flag on, still a stub" : "not published"}.
+          Live calls to SF: {view.liveCallsEnabled ? "enabled" : "off"}. That flag does not gate
+          inbound 3.15 pushes. Admin query writes: {view.trackingWritesEnabled ? "enabled" : "off"}.
+        </s-paragraph>
+        <s-paragraph>
+          3.15 push path: {OUTBOUND_STATUS_PUSH_PATH}. The host is SHOPIFY_APP_URL after deploy.
+          No public hostname is configured in this app.
         </s-paragraph>
       </s-section>
 

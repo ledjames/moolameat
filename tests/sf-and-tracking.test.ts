@@ -7,7 +7,6 @@ import { loadSfConfig, queryGate, resolveRequestUrl, unconfirmedProductionGuesse
 import { CONFIRMED_CARGO_OWNER_CODE, CONFIRMED_WAREHOUSE_CODE, REJECTED_CARGO_OWNER_CODE, SIT_REQUEST_URL } from "../app/sf/constants";
 import { dataDigest } from "../app/sf/sign";
 import { parseStatusDocument } from "../app/sf/parse-status";
-import { publishedStubResponse, unpublishedPushResponse, PUSH_UNPUBLISHED_MESSAGE } from "../app/sf/push-receiver";
 import { runStatusQuery } from "../app/tracking/query-action";
 import { TRACKING_INFO_UPDATE, TRACKING_ORDER_QUERY } from "../app/shopify/operations";
 import { buildTrackingPlan } from "../app/shopify/tracking-plan";
@@ -195,29 +194,6 @@ describe("status parsing", () => {
     assert.equal(document.head, "PART");
     assert.equal(document.orders[0]?.result, "2");
     assert.equal(document.orders[0]?.note, "Order does not exist");
-  });
-});
-
-describe("3.15 stub", () => {
-  it("is unpublished and does not advertise a callback URL", async () => {
-    const response = unpublishedPushResponse();
-    assert.equal(response.status, 404);
-    const text = await response.text();
-    assert.equal(text, PUSH_UNPUBLISHED_MESSAGE);
-    assert.equal(text.includes("https://"), false);
-  });
-
-  it("does not echo the push body when the publish flag is on", async () => {
-    const secret = "push-body-secret-value";
-    const response = publishedStubResponse(
-      `<Request service="SALE_ORDER_STATUS_PUSH_SERVICE" lang="zh-CN"><Body><SaleOrderStatusRequest><SaleOrders><SaleOrder><ErpOrder>1001</ErpOrder><WayBillNo>SF1</WayBillNo><DataStatus>2900</DataStatus><Note>${secret}</Note></SaleOrder></SaleOrders></SaleOrderStatusRequest></Body></Request>`,
-      "application/xml",
-    );
-    assert.equal(response.status, 501);
-    const text = await response.text();
-    assert.equal(text.includes(secret), false);
-    assert.match(text, /Parsed 1 outbound order/);
-    assert.match(text, /No success acknowledgement/);
   });
 });
 

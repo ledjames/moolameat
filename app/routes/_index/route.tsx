@@ -44,8 +44,8 @@ export default function App() {
             status. Live SF calls stay off until you explicitly enable them.
           </li>
           <li>
-            <strong>3.15 push receiver</strong>. A stub only. It is not a
-            callback URL for SF Express.
+            <strong>3.15 push receiver</strong>. A public POST path on this
+            app. The hostname exists only after deploy.
           </li>
           <li>
             <strong>Shopify tracking</strong>. Waybill numbers attach to an

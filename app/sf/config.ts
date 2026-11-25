@@ -44,7 +44,6 @@ export type SfConfig = {
     md5SpecialString: IssuedField;
   };
   liveCallsEnabled: boolean;
-  pushReceiverPublished: boolean;
   orderMatch: OrderMatchMode;
   notifyCustomer: boolean;
   trackingWritesEnabled: boolean;
@@ -107,7 +106,6 @@ export function loadSfConfig(env: NodeJS.ProcessEnv = process.env): SfConfig {
       md5SpecialString: pick(env.SF_MAP_MD5_SPECIAL_STRING, ISSUED_FIELDS, "md5_checkword"),
     },
     liveCallsEnabled: flag(env.SF_LIVE_CALLS_ENABLED),
-    pushReceiverPublished: flag(env.SF_PUSH_RECEIVER_PUBLISHED),
     orderMatch: pick(env.SHOPIFY_ORDER_MATCH, ["order_name", "numeric_id"] as const, "order_name"),
     notifyCustomer: flag(env.SHOPIFY_NOTIFY_CUSTOMER),
     trackingWritesEnabled: flag(env.SHOPIFY_TRACKING_WRITES_ENABLED),
@@ -270,7 +268,6 @@ export type PublicConnection = {
   productionGatewayHost: string;
   productionRequestUrlConfigured: boolean;
   liveCallsEnabled: boolean;
-  pushReceiverPublished: boolean;
   orderMatch: OrderMatchMode;
   notifyCustomer: boolean;
   trackingWritesEnabled: boolean;
@@ -314,7 +311,6 @@ export function toPublicConnection(config: SfConfig): PublicConnection {
     productionGatewayHost: config.productionGatewayHost,
     productionRequestUrlConfigured: config.productionRequestUrl.length > 0,
     liveCallsEnabled: config.liveCallsEnabled,
-    pushReceiverPublished: config.pushReceiverPublished,
     orderMatch: config.orderMatch,
     notifyCustomer: config.notifyCustomer,
     trackingWritesEnabled: config.trackingWritesEnabled,

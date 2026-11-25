@@ -32,8 +32,8 @@ export const SF_BLOCKERS = [
   },
   {
     id: "push-url",
-    title: "PUSH URL not yet issued",
+    title: "Public hostname for the 3.15 URL",
     detail:
-      "Daniel recommended 3.15 push for route and status, with 3.16 query as backup. The 3.15 receiver in this app is a stub and returns 404. No callback URL has been given to SF Express.",
+      "The receiver path is /api/sf/outbound-status on SHOPIFY_APP_URL. No public hostname has been minted in this repo. Do not send a URL to SF until the app is deployed and that host is known.",
   },
 ] as const;

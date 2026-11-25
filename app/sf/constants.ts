@@ -25,6 +25,12 @@ export const SIT_REQUEST_URL =
  */
 export const PRODUCTION_GATEWAY_HOST = "https://portal-gateway.sf-express.com";
 
+/**
+ * Path on this app for SCC-OMS 3.15. The host is SHOPIFY_APP_URL after the
+ * app is linked and deployed. This file does not name a public hostname.
+ */
+export const OUTBOUND_STATUS_PUSH_PATH = "/api/sf/outbound-status";
+
 export const SERVICE_CODES = {
   outboundStatusQuery: "SALE_ORDER_STATUS_QUERY_SERVICE",
   outboundStatusPush: "SALE_ORDER_STATUS_PUSH_SERVICE",

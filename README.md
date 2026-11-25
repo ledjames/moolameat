@@ -10,14 +10,14 @@ The app scaffold is the official [Shopify React Router app template](https://git
 
 - Embedded admin app (Polaris web components and App Bridge) with the confirmed codes, connection settings, and a 3.16 status query action.
 - SF SCC-OMS client: UTF-8 HTTP POST, `logistics_interface` plus `data_digest`, and `SALE_ORDER_STATUS_QUERY_SERVICE`.
-- A 3.15 push receiver stub that stays unpublished.
+- A public 3.15 push receiver at `/api/sf/outbound-status` that verifies `data_digest` and the Check Word, then updates tracking.
 - A Shopify tracking plan that attaches `WayBillNo` with `fulfillmentTrackingInfoUpdate` on an existing fulfillment of a paid order.
 
 ## What is not implemented
 
 - Item Master (`ITEM_SERVICE` / 3.1), inbound, outbound order creation, cancellation, or inventory adjustments.
-- Live calls to the SF gateway. `SF_LIVE_CALLS_ENABLED` defaults to false, and the client throws before `fetch` unless that flag is the string `true`.
-- A callback URL for SF. The 3.15 route returns 404 until `SF_PUSH_RECEIVER_PUBLISHED=true`, and even then it does not acknowledge the push or update Shopify.
+- Live calls to the SF gateway. `SF_LIVE_CALLS_ENABLED` defaults to false and only gates requests this app sends to SF. Receiving a 3.15 push does not use that flag.
+- A hostname for the push URL. The path is fixed; the public host is `SHOPIFY_APP_URL` after deploy.
 - `fulfillmentCreate`. Creating a fulfillment can change on-hand inventory, so orders with no fulfillment are left unchanged.
 
 ## Confirmed codes
@@ -44,7 +44,7 @@ shopify app dev
 
 Do not set `SF_LIVE_CALLS_ENABLED=true` until the blockers below are resolved. Do not point a test at the SIT or production gateway from this repo's scripts. The unit tests use a mocked `fetch` and the spec's published signing example.
 
-`npm run typecheck` and `npm run lint` check the app. `npm test` covers signing, the 3.16 request, the unpublished 3.15 stub, and the tracking plan.
+`npm run typecheck` and `npm run lint` check the app. `npm test` covers signing, the 3.16 request, the 3.15 receiver, and the tracking plan. No test calls SF or Shopify.
 
 ## Install on yhnbqk-zz
 
@@ -90,22 +90,43 @@ Production host, from SF, with no path and no port:
 | Status codes | Shown only. Not written as fulfillment events. | Unconfirmed |
 | Financial status | Tracking is eligible only when `displayFinancialStatus` is `PAID`. | Partially paid is excluded on purpose |
 
-`fulfillmentTrackingInfoUpdate` does not adjust inventory quantities. Customer notification stays off unless `SHOPIFY_NOTIFY_CUSTOMER=true`. The write itself stays off unless `SHOPIFY_TRACKING_WRITES_ENABLED=true`. Split orders (`IsSplit=Y`) and orders with more than one possible fulfillment are not updated.
+`fulfillmentTrackingInfoUpdate` does not adjust inventory quantities. Customer notification stays off unless `SHOPIFY_NOTIFY_CUSTOMER=true`. A verified 3.15 push performs that update. The admin status-query screen does not write unless `SHOPIFY_TRACKING_WRITES_ENABLED=true`. Split orders (`IsSplit=Y`) and orders with more than one possible fulfillment are not updated.
 
 Sections 3.13 and 3.17 are out of this pass.
 
 ## 3.15 receiver
 
-`app/routes/sf.outbound-status.push.tsx` is an internal stub. It is not registered in `shopify.app.toml` and it is not a URL to give SF. Unpublished, it returns 404 and a plain-text explanation. The publish flag still returns 501, does not return the spec success result, and does not change a fulfillment. No callback URL has been issued.
+SF Express POSTs to this app. The route does not use a Shopify admin session.
+
+```text
+https://{SHOPIFY_APP_URL}/api/sf/outbound-status
+```
+
+`{SHOPIFY_APP_URL}` is the app origin from `shopify app dev` or from the host you deploy to. This repository does not contain a public hostname. Do not send Daniel a URL until that origin is a real HTTPS address.
+
+The request must be `Content-Type: application/x-www-form-urlencoded` with `logistics_interface` and `data_digest`. HTTP headers `sysSource` (cargo owner `8526949142`) and `serviceCode` (`SALE_ORDER_STATUS_PUSH_SERVICE`) are required. The signed plaintext must include `AccessCode` and `Checkword`. `data_digest` is checked with the MD5 special string. The Check Word and Access Code are checked against the mapped env values. A mismatch returns the spec system error (`Head ERR`, or JSON `result` `"0"`) and does not call Shopify.
+
+A valid push updates tracking with `fulfillmentTrackingInfoUpdate` on a paid order that already has a fulfillment. The success body is the spec's 3.15 response: XML `Head OK` and `Result` `1`, or JSON `{"result":"1","message":"SUCCESS","data":null}`. If the app is not installed on yhnbqk-zz, the response is a system error and nothing is written.
+
+`SF_LIVE_CALLS_ENABLED` stays false. It only blocks this app from calling SF. It does not block SF from calling this route.
+
+### Steps still required before the URL can be given to SF
+
+1. Log in to the Shopify Dev Dashboard and run `shopify app config link` or `shopify app dev` in this repo.
+2. Deploy the app (`shopify app deploy` for app config, and host the web process) so `SHOPIFY_APP_URL` is a stable public HTTPS origin. A `shopify app dev` tunnel changes and is not a URL to give SF.
+3. Set the same origin as the app URL in the Dev Dashboard.
+4. Put `SF_ISSUED_ACCESS_CODE`, `SF_ISSUED_PASS_CODE`, and `SF_ISSUED_MD5_CHECKWORD` in the host environment, not in git.
+5. Install the app on `yhnbqk-zz.myshopify.com` so an offline session exists.
+6. Give Daniel `https://{that origin}/api/sf/outbound-status` only after the origin answers HTTPS.
 
 ## Open blockers waiting on SF
 
-1. **Full production path and port.** Only the host `https://portal-gateway.sf-express.com` is confirmed.
+1. **Full production path and port.** Only the host `https://portal-gateway.sf-express.com` is confirmed. That host is for calls we make to SF, not for the push receiver.
 2. **Credential field mapping.** PassCode does not appear in the spec. The default map above is likely and unconfirmed.
 3. **Whether the issued credentials are the final set.** It is unconfirmed whether the three issued fields are final for SIT, production, or both.
-4. **Content-Type and where `sysSource` / `serviceCode` go.** Defaults follow the documented form body and request headers.
-5. **XML vs JSON.** The spec's general format is XML. 3.16 also has a JSON sample. The default is XML.
-6. **PUSH URL not yet issued.** Daniel recommended push for route and status, with 3.16 query as the backup. No receiving URL has been given to SF.
+4. **Content-Type and where `sysSource` / `serviceCode` go on calls we send to SF.** The 3.15 receiver requires the documented form body and those two request headers. SF has not confirmed that their push client sends them that way.
+5. **XML vs JSON.** The receiver accepts whichever format is inside `logistics_interface`. The spec's 3.15 samples omit `Head`, while pages 16–18 require Access Code and Check Word. This receiver requires them.
+6. **Public hostname.** The path is `/api/sf/outbound-status`. The hostname is not minted until the app is deployed.
 
 The spec also says 3.15 and 3.16 are for the Baichuan OMS system. SF has not confirmed that path for warehouse `852DCTZ`.
 
