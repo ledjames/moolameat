@@ -28,6 +28,35 @@ export const TRACKING_ORDER_QUERY = `#graphql
   }
 `;
 
+/**
+ * Read-only. Sums the available quantity across inventory levels.
+ * No inventory mutation is defined in this file.
+ */
+export const VARIANT_INVENTORY_QUERY = `#graphql
+  query VariantInventoryBySku($query: String!) {
+    productVariants(first: 50, query: $query) {
+      nodes {
+        id
+        sku
+        inventoryItem {
+          tracked
+          inventoryLevels(first: 20) {
+            nodes {
+              location {
+                name
+              }
+              quantities(names: ["available"]) {
+                name
+                quantity
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const TRACKING_INFO_UPDATE = `#graphql
   mutation TrackingInfoUpdate(
     $fulfillmentId: ID!

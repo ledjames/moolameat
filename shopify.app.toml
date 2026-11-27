@@ -3,10 +3,12 @@
 client_id = ""
 
 [access_scopes]
-# Read paid orders and attach tracking to existing fulfillments.
-# No product, price, inventory, or theme scopes.
+# Tracking scopes are unchanged. read_products, read_inventory, and read_locations
+# are read-only and let the inventory preview show current quantities.
+# There is no write_inventory scope. A later app version and re-auth are required
+# before those reads succeed on the live store.
 # https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders"
+scopes = "read_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_products,read_inventory,read_locations"
 
 [webhooks]
 api_version = "2026-10"

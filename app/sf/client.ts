@@ -1,5 +1,6 @@
 import { SERVICE_CODES } from "./constants";
 import { resolveRequestUrl, resolveSecrets, type SfConfig } from "./config";
+import { buildInventoryQueryMessage, type InventoryQueryItem } from "./inventory";
 import { buildStatusQueryMessage, wrapSignedRequest, type PreparedSfRequest } from "./messages";
 import { dataDigest } from "./sign";
 
@@ -43,6 +44,26 @@ export function prepareStatusQuery(
     plaintext,
     digest: dataDigest(plaintext, secrets.md5SpecialString),
     serviceCode: SERVICE_CODES.outboundStatusQuery,
+    config,
+  });
+}
+
+export function prepareInventoryQuery(
+  config: SfConfig,
+  input: { items: InventoryQueryItem[]; inventoryStatus?: string },
+): PreparedSfRequest {
+  const secrets = resolveSecrets(config);
+  if (!secrets) {
+    throw new SfRequestNotReadyError("SF credentials are not configured.");
+  }
+  const url = resolveRequestUrl(config);
+  if (!url.ok) throw new SfRequestNotReadyError(url.reason);
+  const plaintext = buildInventoryQueryMessage(config, secrets.accessCode, secrets.checkword, input);
+  return wrapSignedRequest({
+    url: url.url,
+    plaintext,
+    digest: dataDigest(plaintext, secrets.md5SpecialString),
+    serviceCode: SERVICE_CODES.inventoryQuery,
     config,
   });
 }

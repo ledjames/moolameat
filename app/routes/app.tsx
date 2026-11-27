@@ -19,6 +19,7 @@ export default function App() {
     <AppProvider apiKey={apiKey}>
       <s-app-nav>
         <s-link href="/app">Tracking</s-link>
+        <s-link href="/app/inventory">Inventory</s-link>
         <s-link href="/app/mapping">Field mapping</s-link>
       </s-app-nav>
       <Outlet />

@@ -44,7 +44,7 @@ shopify app dev
 
 Do not set `SF_LIVE_CALLS_ENABLED=true` until the blockers below are resolved. Do not point a test at the SIT or production gateway from this repo's scripts. The unit tests use a mocked `fetch` and the spec's published signing example.
 
-`npm run typecheck` and `npm run lint` check the app. `npm test` covers signing, the 3.16 request, the 3.15 receiver, and the tracking plan. No test calls SF or Shopify.
+`npm run typecheck` and `npm run lint` check the app. `npm test` covers signing, the 3.16 request, the 3.15 receiver, the 3.18 inventory fixtures, and the tracking plan. No test calls SF.
 
 ## Install on yhnbqk-zz
 
@@ -92,7 +92,15 @@ Production host, from SF, with no path and no port:
 
 `fulfillmentTrackingInfoUpdate` does not adjust inventory quantities. Customer notification stays off unless `SHOPIFY_NOTIFY_CUSTOMER=true`. A verified 3.15 push performs that update. The admin status-query screen does not write unless `SHOPIFY_TRACKING_WRITES_ENABLED=true`. Split orders (`IsSplit=Y`) and orders with more than one possible fulfillment are not updated.
 
-Sections 3.13 and 3.17 are out of this pass.
+Sections 3.13 and 3.17 are out of this pass. 3.17 real-time inventory push is Fengzhi Cloud Chain only and is not implemented.
+
+## Inventory preview
+
+The Inventory page compares SCC-OMS 3.18 `RT_INVENTORY_QUERY_SERVICE` Good Stock (`InventoryStatus` 10) `AvailableQty` with the Shopify available quantity for the same SKU. `SkuNo` is matched to the variant SKU. SKUs that exist on only one side stay visible. The query sends CompanyCode `8526949142`, warehouse `852DCTZ`, and up to 20 item codes. It does not dump the warehouse.
+
+The page renders while `SF_LIVE_CALLS_ENABLED` is off and does not call SF. Shopify quantities are read only. `shopify.app.toml` adds `read_products`, `read_inventory`, and `read_locations`. It does not add `write_inventory`. Those reads work on the live store only after a new app version is released and the shop re-authorizes. This pass does not deploy that version and does not change stock.
+
+3.18 is described as Baichuan OMS only, the same caveat as 3.15.
 
 ## 3.15 receiver
 

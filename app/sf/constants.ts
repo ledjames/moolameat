@@ -34,7 +34,12 @@ export const OUTBOUND_STATUS_PUSH_PATH = "/api/sf/outbound-status";
 export const SERVICE_CODES = {
   outboundStatusQuery: "SALE_ORDER_STATUS_QUERY_SERVICE",
   outboundStatusPush: "SALE_ORDER_STATUS_PUSH_SERVICE",
+  inventoryQuery: "RT_INVENTORY_QUERY_SERVICE",
 } as const;
+
+/** Spec 3.18 InventoryStatus. 10 is Good Stock. 20 is Damaged Stock. */
+export const INVENTORY_STATUS_GOOD = "10";
+export const INVENTORY_STATUS_DAMAGED = "20";
 
 export type ServiceCode = (typeof SERVICE_CODES)[keyof typeof SERVICE_CODES];
 
