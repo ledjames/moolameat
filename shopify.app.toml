@@ -1,0 +1,40 @@
+# Moola Meat tracking app. Custom distribution for yhnbqk-zz only.
+# Not an App Store listing. client_id is filled by `shopify app config link`.
+client_id = ""
+
+[access_scopes]
+# Tracking scopes are unchanged. read_products, read_inventory, and read_locations
+# are read-only and let the inventory preview show current quantities.
+# There is no write_inventory scope. A later app version and re-auth are required
+# before those reads succeed on the live store.
+# https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_products,read_inventory,read_locations"
+
+[webhooks]
+api_version = "2026-10"
+
+  # Handled by: /app/routes/webhooks.app.uninstalled.tsx
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  # Handled by: /app/routes/webhooks.app.scopes_update.tsx
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  # Mandatory compliance topic for public apps only
+  # See: https://shopify.dev/docs/apps/build/privacy-law-compliance
+  # [[webhooks.subscriptions]]
+  # uri = "/webhooks/customers/data_request"
+  # compliance_topics = ["customers/data_request"]
+
+  # [[webhooks.subscriptions]]
+  # uri = "/webhooks/customers/redact"
+  # compliance_topics = ["customers/redact"]
+
+  # [[webhooks.subscriptions]]
+  # uri = "/webhooks/shop/redact"
+  # compliance_topics = ["shop/redact"]
+
+# No product, price, or inventory event subscriptions in this tracking pass.
